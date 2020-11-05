@@ -87,9 +87,6 @@ func Query(params *QueryParam) error {
 			params.Timeout = time.Second
 		}
 		params.Context, _ = context.WithTimeout(context.Background(), params.Timeout)
-		if err != nil {
-			return err
-		}
 	}
 
 	// Run the query
@@ -105,7 +102,7 @@ func Listen(entries chan<- *ServiceEntry, exit chan struct{}) error {
 	}
 	defer client.Close()
 
-	client.setInterface(nil, true)
+	_ = client.setInterface(nil, true)
 
 	// Start listening for response packets
 	msgCh := make(chan *dns.Msg, 32)
@@ -149,7 +146,6 @@ func Listen(entries chan<- *ServiceEntry, exit chan struct{}) error {
 		}
 	}
 
-	return nil
 }
 
 // Lookup is the same as Query, however it uses all the default parameters
@@ -216,8 +212,8 @@ func newClient() (*client, error) {
 
 	p1 := ipv4.NewPacketConn(mconn4)
 	p2 := ipv6.NewPacketConn(mconn6)
-	p1.SetMulticastLoopback(true)
-	p2.SetMulticastLoopback(true)
+	_ = p1.SetMulticastLoopback(true)
+	_ = p2.SetMulticastLoopback(true)
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -262,16 +258,16 @@ func (c *client) Close() error {
 	close(c.closedCh)
 
 	if c.ipv4UnicastConn != nil {
-		c.ipv4UnicastConn.Close()
+		_ = c.ipv4UnicastConn.Close()
 	}
 	if c.ipv6UnicastConn != nil {
-		c.ipv6UnicastConn.Close()
+		_ = c.ipv6UnicastConn.Close()
 	}
 	if c.ipv4MulticastConn != nil {
-		c.ipv4MulticastConn.Close()
+		_ = c.ipv4MulticastConn.Close()
 	}
 	if c.ipv6MulticastConn != nil {
-		c.ipv6MulticastConn.Close()
+		_ = c.ipv6MulticastConn.Close()
 	}
 
 	return nil
@@ -298,8 +294,8 @@ func (c *client) setInterface(iface *net.Interface, loopback bool) error {
 	}
 
 	if loopback {
-		p.SetMulticastLoopback(true)
-		p2.SetMulticastLoopback(true)
+		_ = p.SetMulticastLoopback(true)
+		_ = p2.SetMulticastLoopback(true)
 	}
 
 	return nil
@@ -378,10 +374,10 @@ func (c *client) sendQuery(q *dns.Msg) error {
 		return err
 	}
 	if c.ipv4UnicastConn != nil {
-		c.ipv4UnicastConn.WriteToUDP(buf, ipv4Addr)
+		_, _ = c.ipv4UnicastConn.WriteToUDP(buf, ipv4Addr)
 	}
 	if c.ipv6UnicastConn != nil {
-		c.ipv6UnicastConn.WriteToUDP(buf, ipv6Addr)
+		_, _ = c.ipv6UnicastConn.WriteToUDP(buf, ipv6Addr)
 	}
 	return nil
 }

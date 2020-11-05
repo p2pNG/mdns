@@ -80,7 +80,7 @@ func NewServer(config *Config) (*Server, error) {
 	ipv4List, _ := net.ListenUDP("udp4", mdnsWildcardAddrIPv4)
 	ipv6List, _ := net.ListenUDP("udp6", mdnsWildcardAddrIPv6)
 	if ipv4List == nil && ipv6List == nil {
-		return nil, fmt.Errorf("[ERR] mdns: Failed to bind to any udp port!")
+		return nil, fmt.Errorf("mdns: failed to bind to any udp port")
 	}
 
 	if ipv4List == nil {
@@ -93,8 +93,8 @@ func NewServer(config *Config) (*Server, error) {
 	// Join multicast groups to receive announcements
 	p1 := ipv4.NewPacketConn(ipv4List)
 	p2 := ipv6.NewPacketConn(ipv6List)
-	p1.SetMulticastLoopback(true)
-	p2.SetMulticastLoopback(true)
+	_ = p1.SetMulticastLoopback(true)
+	_ = p2.SetMulticastLoopback(true)
 
 	if config.Iface != nil {
 		if err := p1.JoinGroup(config.Iface, &net.UDPAddr{IP: mdnsGroupIPv4}); err != nil {
@@ -118,7 +118,7 @@ func NewServer(config *Config) (*Server, error) {
 			}
 		}
 		if len(ifaces) == errCount1 && len(ifaces) == errCount2 {
-			return nil, fmt.Errorf("Failed to join multicast group on all interfaces!")
+			return nil, fmt.Errorf("failed to join multicast group on all interfaces")
 		}
 	}
 
@@ -149,13 +149,13 @@ func (s *Server) Shutdown() error {
 
 	s.shutdown = true
 	close(s.shutdownCh)
-	s.unregister()
+	_ = s.unregister()
 
 	if s.ipv4List != nil {
-		s.ipv4List.Close()
+		_ = s.ipv4List.Close()
 	}
 	if s.ipv6List != nil {
-		s.ipv6List.Close()
+		_ = s.ipv6List.Close()
 	}
 
 	s.wg.Wait()
@@ -415,10 +415,10 @@ func (s *Server) SendMulticast(msg *dns.Msg) error {
 		return err
 	}
 	if s.ipv4List != nil {
-		s.ipv4List.WriteToUDP(buf, ipv4Addr)
+		_, _ = s.ipv4List.WriteToUDP(buf, ipv4Addr)
 	}
 	if s.ipv6List != nil {
-		s.ipv6List.WriteToUDP(buf, ipv6Addr)
+		_, _ = s.ipv6List.WriteToUDP(buf, ipv6Addr)
 	}
 	return nil
 }
